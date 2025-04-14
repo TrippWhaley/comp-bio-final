@@ -31,3 +31,8 @@ def get_training_datasets(t1: str, t2: str):
   t2 = get_timestamp_df(t2)
   ids = set(t1['patient_id'].unique()).intersection(t2['patient_id'].unique())
   return t1.loc[t1['patient_id'].isin(ids)], t2.loc[t2['patient_id'].isin(ids)]
+
+def get_training_dataset(t1: str):
+  t1 = get_timestamp_df(t1)
+  ids = set(t1['patient_id'].unique())
+  return t1.loc[t1['patient_id'].isin(ids)]

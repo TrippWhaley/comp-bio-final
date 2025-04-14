@@ -1,50 +1,35 @@
 import os.path
-import subprocess
-
-import numpy as np
-import torch
-from torch import Tensor
 from warnings import catch_warnings
 
-from gan import GAN, Generator, Discriminator
-from data_loader import get_training_datasets
-from EnGen.EnGen_Iteration_preprocess import our_matching
+from data_loader import get_training_datasets, get_training_dataset
+# from EnGen.EnGen_Iteration_preprocess import our_matching
 from EnGen.EnGen_model.train import train_engen
+from EnGen_iteration_preprocess_patch import our_matching
+from EnGen_generate_patch import GenerateEnGen
 
-# def train(t1: Tensor, t2: Tensor, ts1: str, ts2: str):
-#     default_size = t1.shape[1]
-#     generator = Generator(default_size, default_size)
-#     discriminator = Discriminator(2*default_size)
-#     model = GAN(generator=generator, discriminator=discriminator)
-#
-#     model.do_train(data=torch.concat([t1, t2]), source_ts=ts1, target_ts=ts2)
-#
-#     return model
-#
-# def evaluate(model, data):
-#     model.eval()
-#     test_t2 = model.generator(data).detach().numpy()
-#     print('hi')
+num_iters = 3  # use 30 for real run
+BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+# iteration num hardcoded for now, sorry
+MODEL_PATH = os.path.join(BASE_PATH, '..', f'EnGen/EnGen_train_iterations/engen_output/iter_{'0' + str(num_iters) if num_iters < 10 else num_iters}/saved_model/best_model_engen.pth')
 
 def main(ts1: str, ts2: str):
-    num_iters = 3  # use 30 for real run
-
-    if not os.path.exists(f'/Users/trippwhaley/Projects/comp-bio-final/src/Func_Pheno_45k_scaled_with_{ts1}_{ts2}_tps_source_{ts1}_target_{ts2}_matched.csv'):
+    # Only run if we haven't already preprocesses
+    if not os.path.exists(os.path.join(BASE_PATH, f'Func_Pheno_45k_scaled_with_{ts1}_{ts2}_tps_source_{ts1}_target_{ts2}_matched.csv')):
+        # Preprocessing
         with catch_warnings(action='ignore'):
             t1_df, t2_df = get_training_datasets(ts1, ts2)
-        # t1 = torch.tensor(t1_df.values.astype(np.float32))
-        # t2 = torch.tensor(t2_df.values.astype(np.float32))
-
-        # Preprocessing
         # Seems like only these 3 IDs exist in both 24H and 14D
         for iter_id in range(num_iters):
             our_matching(iter_id, t1_df, t2_df, AE_train_ids=['02', '03', '12'], timepoints=[ts1, ts2])
 
-    train_engen(num_iters)
-    # subprocess.call(['python', f'/Users/trippwhaley/Projects/comp-bio-final/EnGen/EnGen_model/train.py', '--iter_id', f'{num_iters}', '--source', '{ts1}', '--target', '{ts2}'], shell=True)
-    # model = train(t1, t2, ts1, ts2)
-    # # later generate for all timesteps
-    # evaluate(model, t1)
+    # Only run if we don't have a model
+    if not os.path.exists(MODEL_PATH):
+        train_engen(num_iters)
 
+    with catch_warnings(action='ignore'):
+        source_df = get_training_dataset(ts1)
+    # Always run generation for now
+    generator = GenerateEnGen(model_path=MODEL_PATH, test_patient_ids=['04', '05'], source=source_df, iter_id=num_iters)
+    generator.generate_csv()
 if __name__ == "__main__":
     main('24H', '14D')
