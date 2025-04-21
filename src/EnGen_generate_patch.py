@@ -63,6 +63,8 @@ class GenerateEnGen(object):
 
         for test_id in self.test_patient_ids:
             df_source = self.source[self.source['patient_id'] == test_id].astype(float)
+            if len(df_source) == 0:
+                continue
             df_source.drop(['time', 'event_length', 'patient_id'], axis=1, inplace=True)
             print('generating for test patient {}'.format(test_id))
 

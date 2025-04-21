@@ -12,12 +12,12 @@ import torch.nn as nn
 from tqdm import tqdm
 from torch.autograd import Variable
 from sklearn import preprocessing
-from EnGen.EnGen_model.models import EnGen
+from EnGen.EnGen_model.train import EnGen
 
-from EnGen.EnGen_model.utils import cytofDataset, GlobalsVars
+from utils_patch import cytofDataset, GlobalsVars
 
 
-def train_engen(iter_id=0, batch_size=2048, epochs=100, seed=42):
+def train_engen(iter_id=0, batch_size=2048, epochs=1000, seed=42):
     globals_vars = GlobalsVars(iter_id)
 
     learning_rate = 0.005
@@ -123,4 +123,40 @@ def train_engen(iter_id=0, batch_size=2048, epochs=100, seed=42):
             pd_logs = pd.DataFrame(logs)
             pd_logs.to_csv(globals_vars.dir_path_csv + 'Logs_engen.csv', index=False)
 
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--iter_id", type=int, required=True,
+                        help='iterate int from 0 to n_iterations-1')  # repeat for 30 iterations
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--GPU_ID", type=int, default=0)
+    parser.add_argument("--epochs", type=int, default=2500)
+    parser.add_argument("--batch_size", type=int, default=2048)
+    parser.add_argument("--n_cpus", type=int, default=2)
+    parser.add_argument("--learning_rate", type=float, default=0.005)
+    parser.add_argument("--encoder_layer_sizes", type=list, default=[37, 128, 256, 256])
+    parser.add_argument("--decoder_layer_sizes", type=list, default=[256, 256, 128, 37])
+    parser.add_argument("--latent_size", type=int, default=128)
+    parser.add_argument("--print_every", type=int, default=10)
+    parser.add_argument("--fig_root", type=str, default='figs')
+    parser.add_argument("--csv_root", type=str, default='csv')
+    parser.add_argument('--ckpt', type=str, default=None, metavar='PATH',
+                        # parser.add_argument('--ckpt', type=str, default='PATH_TO_SAVED_CHECKPOINT', metavar='PATH',
+                        help='checkpoint path to load from/save to model (default: None)')
+    parser.add_argument('--sched_step', default=30, type=int, help='scheduler steps for rate update')
+    parser.add_argument('--sched_gamma', default=0.5, type=float, help='scheduler gamma for rate update')
+    parser.add_argument('--sched_patience', default=20, type=float,
+                        help='scheduler patience for rate update - pretrain')
+    parser.add_argument("--about", type=str, default='x_in: {}, x_out: {}, matched'.format('Pre', 'Post'))
+
+    args = parser.parse_args()
+    globals_vars = GlobalsVars(args.iter_id)
+    if args.ckpt is not None:  # continue from the checkpoint
+        assert os.path.exists(args.ckpt), "Saved model not found!"
+
+    text_filename = globals_vars.dir_path_main + '/commandline_args.txt'
+    with open(text_filename, 'w') as f:
+        f.write('\n'.join("{}={}".format(key, val) for (key, val) in vars(args).items()))
+    train_engen(args, globals_vars)
 

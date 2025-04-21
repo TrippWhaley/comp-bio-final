@@ -1,6 +1,6 @@
 import pandas as pd
 
-timepoints = ['24H', '14D']
+timepoints = ['24H', '30D']
 source, target = timepoints
 AE_train_ids = [] # some subset of patient IDs
 folder_path = './'
