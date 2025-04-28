@@ -1,11 +1,10 @@
 import pandas as pd
 
-timepoints = ['24H', '30D']
-source, target = timepoints
 AE_train_ids = [] # some subset of patient IDs
 folder_path = './'
 
-def our_matching(iter_id, df_source, df_target, AE_train_ids=AE_train_ids, timepoints=timepoints):
+def our_matching(iter_id, df_source, df_target, timepoints, AE_train_ids=AE_train_ids):
+    source, target = timepoints
     # optimize for the perfect matching
     print(f'Iter= {iter_id}')
     df_source_target_matched = pd.DataFrame()

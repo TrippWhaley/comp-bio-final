@@ -11,7 +11,7 @@ import pickle
 
 
 class GlobalsVars():
-    def __init__(self, iter_id=0, source='24H', target='14D'):
+    def __init__(self, iter_id=0, source='24H', target='30D'):
         self.ts = time.time()
         self.iter_id = iter_id
 

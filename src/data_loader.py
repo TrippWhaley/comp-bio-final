@@ -13,7 +13,8 @@ def get_timestamp_df(timestamp: str):
   for f in timestamp_grouped_files[timestamp]:
     flow_sample = fk.Sample(f'{FILE_BASE}/{f}', ignore_offset_error=True)
     # Maybe this arcsinh isn't necessary but I remember it being discussed in class for something, we can re-evaluate later
-    flow_sample_np = np.arcsinh(1./5 * flow_sample._get_raw_events()[:,:])
+    # flow_sample_np = np.arcsinh(1./5 * flow_sample._get_raw_events()[:,:])
+    flow_sample_np = flow_sample._get_raw_events()[:,:]
     col_names = np.array(flow_sample.pns_labels)
     # we know these for a fact, and they come in empty on pns labels
     col_names[0] = 'time'

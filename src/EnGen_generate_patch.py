@@ -3,7 +3,7 @@ import torch
 import pandas as pd
 import pickle
 import torch.nn as nn
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MaxAbsScaler
 from torch.autograd import Variable
 
 from EnGen.EnGen_model.models import EnGen
@@ -60,6 +60,9 @@ class GenerateEnGen(object):
     #     return np.arcsinh(a + b * x) + c
 
     def generate_csv(self):
+        scaler = StandardScaler()
+        print('fitting scaler')
+        scaler.fit(self.source.drop(columns=['time', 'event_length', 'patient_id']).iloc[:, :].values)
 
         for test_id in self.test_patient_ids:
             df_source = self.source[self.source['patient_id'] == test_id].astype(float)
@@ -69,9 +72,9 @@ class GenerateEnGen(object):
             print('generating for test patient {}'.format(test_id))
 
             # This was originally using a Scaler from args['AE_scaler'], which we should actually use tbh
-            scaler = StandardScaler()
-            print('fitting scaler')
-            scaler.fit(df_source.iloc[:, :].values)
+            # scaler = StandardScaler()
+            # print('fitting scaler')
+            # scaler.fit(df_source.iloc[:, :].values)
             # scaler = self.p['AE_scaler']
             df_source.iloc[:, :] = scaler.transform(df_source.iloc[:, :].values)
 
@@ -90,6 +93,9 @@ class GenerateEnGen(object):
 
             df_gen_target.to_csv(self.csv_path + 'generated_{}_scaled.csv'.format(test_id), header=True, index=False)
             df_gen_target.iloc[:, :] = scaler.inverse_transform(df_gen_target.iloc[:, :].values)
+            print(f"Len of full sample: {len(df_gen_target)}")
+            # test_df = df_gen_target.transform(lambda x: np.sinh(x))
+            # print(f"Len of negative records: {len(test_df[(test_df < 0).any(axis=1)])}")
             df_gen_target.to_csv(self.csv_path + 'generated_{}.csv'.format(test_id), header=True, index=False)
 
 

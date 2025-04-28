@@ -17,10 +17,10 @@ from EnGen.EnGen_model.train import EnGen
 from utils_patch import cytofDataset, GlobalsVars
 
 
-def train_engen(iter_id=0, batch_size=2048, epochs=1000, seed=42):
-    globals_vars = GlobalsVars(iter_id)
+def train_engen(iter_id=0, batch_size=2048, epochs=1000, seed=42, ts1: str='24H', ts2: str='30D'):
+    globals_vars = GlobalsVars(iter_id, source=ts1, target=ts2)
 
-    learning_rate = 0.005
+    learning_rate = 0.0075
     encoder_layer_sizes = [47, 128, 256, 256]
     decoder_layer_sizes = [256, 256, 128, 47]
     latent_size = 128
